@@ -34,6 +34,9 @@ $startURL = "";
 //and is proxied when pressing the 'Proxy It!' button on the landing page if its URL form is left blank.
 $landingExampleURL = "https://example.net";
 
+//Using custom useragent
+$useCustomUseragent = "";
+
 /****************************** END CONFIGURATION ******************************/
 
 ob_start("ob_gzhandler");
@@ -47,6 +50,18 @@ foreach($requiredExtensions as $requiredExtension) {
   if (!extension_loaded($requiredExtension)) {
     die("miniProxy requires PHP's \"" . $requiredExtension . "\" extension. Please install/enable it on your server and try again.");
   }
+}
+
+//If params IP and PORT are set, activate use custom proxy
+if (isset($_GET['ip']) && isset($_GET['port']) && strlen($_GET['ip']) > 0 & strlen($_GET['port']) > 0) {
+  if (!filter_var($_GET['ip'], FILTER_VALIDATE_IP)) {
+    exit('IP address is not valid.');
+  }
+  if (!is_numeric($_GET['port'])) {
+    exit('Port is not valid.');
+  }
+
+  $useCustomProxy = true;
 }
 
 //Helper function for use inside $whitelistPatterns.
@@ -94,17 +109,26 @@ $prefixPort = $usingDefaultPort ? "" : ":" . $_SERVER["SERVER_PORT"];
 $prefixHost = $_SERVER["HTTP_HOST"];
 $prefixHost = strpos($prefixHost, ":") ? implode(":", explode(":", $_SERVER["HTTP_HOST"], -1)) : $prefixHost;
 
-define("PROXY_PREFIX", "http" . (isset($_SERVER["HTTPS"]) ? "s" : "") . "://" . $prefixHost . $prefixPort . $_SERVER["SCRIPT_NAME"] . "?");
+if ($useCustomProxy) {
+  define("PROXY_PREFIX", "http" . (isset($_SERVER["HTTPS"]) ? "s" : "") . "://" . $prefixHost . $prefixPort . $_SERVER["SCRIPT_NAME"] . "?ip=".$_GET['ip']."&port=".$_GET['port']."&url=");
+} else {
+  define("PROXY_PREFIX", "http" . (isset($_SERVER["HTTPS"]) ? "s" : "") . "://" . $prefixHost . $prefixPort . $_SERVER["SCRIPT_NAME"] . "?");
+}
 
 //Makes an HTTP request via cURL, using request data that was passed directly to this script.
 function makeRequest($url) {
 
   global $anonymize;
+  global $useCustomProxy;
+  global $useCustomUseragent;
 
   //Tell cURL to make the request using the brower's user-agent if there is one, or a fallback user-agent otherwise.
   $user_agent = $_SERVER["HTTP_USER_AGENT"];
   if (empty($user_agent)) {
     $user_agent = "Mozilla/5.0 (compatible; miniProxy)";
+  }
+  if (strlen($useCustomUseragent) > 0) {
+    $user_agent = $useCustomUseragent;
   }
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_USERAGENT, $user_agent);
@@ -127,10 +151,19 @@ function makeRequest($url) {
   //indexed array of header strings to be passed to cURL.
   $curlRequestHeaders = array();
   foreach ($browserRequestHeaders as $name => $value) {
-    $curlRequestHeaders[] = $name . ": " . $value;
+    //Prevent showing real hostname
+    if ($useCustomProxy && $name == "X-Forwarded-For") {
+        $curlRequestHeaders[] =  "X-Forwarded-For: ". $_GET['ip'];
+    } else {
+        $curlRequestHeaders[] = $name . ": " . $value;
+    }
   }
   if (!$anonymize) {
     $curlRequestHeaders[] = "X-Forwarded-For: " . $_SERVER["REMOTE_ADDR"];
+  } 
+  //Using custom proxy server
+  if ($useCustomProxy) {
+    curl_setopt($ch, CURLOPT_PROXY, $_GET['ip'].':'.$_GET['port']);
   }
   //Any `origin` header sent by the browser will refer to the proxy itself.
   //If an `origin` header is present in the request, rewrite it to point to the correct origin.
@@ -270,10 +303,15 @@ if (isset($_POST["miniProxyFormAction"])) {
     $formAction = $queryParams["miniProxyFormAction"];
     unset($queryParams["miniProxyFormAction"]);
     $url = $formAction . "?" . http_build_query($queryParams);
-  } else {
-    $url = substr($_SERVER["REQUEST_URI"], strlen($_SERVER["SCRIPT_NAME"]) + 1);
+  } else {   
+    if ($useCustomProxy) {
+      $url = mb_substr($_SERVER["REQUEST_URI"], mb_strlen($_SERVER["SCRIPT_NAME"]."?ip=".$_GET['ip']."&port=".$_GET['port']."&url=") + 0);
+    } else {
+      $url = substr($_SERVER["REQUEST_URI"], strlen($_SERVER["SCRIPT_NAME"]) + 1);
+    }
   }
 }
+
 if (empty($url)) {
     if (empty($startURL)) {
       die("<html><head><title>miniProxy</title></head><body><h1>Welcome to miniProxy!</h1>miniProxy can be directly invoked like this: <a href=\"" . PROXY_PREFIX . $landingExampleURL . "\">" . PROXY_PREFIX . $landingExampleURL . "</a><br /><br />Or, you can simply enter a URL below:<br /><br /><form onsubmit=\"if (document.getElementById('site').value) { window.location.href='" . PROXY_PREFIX . "' + document.getElementById('site').value; return false; } else { window.location.href='" . PROXY_PREFIX . $landingExampleURL . "'; return false; }\" autocomplete=\"off\"><input id=\"site\" type=\"text\" size=\"50\" /><input type=\"submit\" value=\"Proxy It!\" /></form></body></html>");

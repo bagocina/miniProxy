@@ -4,6 +4,10 @@
 
 *[http://joshdick.github.io/miniProxy][1]*
 
+*edited by Jan Neurocny*
+
+*[https://github.com/bagocina/miniProxy][5]*
+
 ---
 
 ## About miniProxy
@@ -28,6 +32,10 @@ miniProxy has several known limitations. Some of them may be fixed in future rel
 * No cookie support
 * Basic AJAX support, but only for browsers that use `XMLHttpRequest`
 
+## Code changes by Jan Neurocny
+* Adding variable $useCustomProxy, to turn on using custom defined proxy server via GET params (miniProxy.php?ip=xxx.xxx.xxx.xxx&port=8080&url=http://example.net).
+* Adding variable $useCustomUseragent, to turn on using custom defined UserAgent.
+
 ## Contact and Feedback
 
 If you'd like to contribute to miniProxy or file a bug or feature request, please visit [its GitHub page][4].
@@ -36,3 +44,4 @@ If you'd like to contribute to miniProxy or file a bug or feature request, pleas
   [2]: http://www.gnu.org/licenses/gpl.html
   [3]: http://pageforward.sf.net
   [4]: https://github.com/joshdick/miniProxy
+  [5]: https://github.com/bagocina/miniProxy
