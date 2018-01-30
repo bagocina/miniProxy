@@ -33,8 +33,8 @@ miniProxy has several known limitations. Some of them may be fixed in future rel
 * Basic AJAX support, but only for browsers that use `XMLHttpRequest`
 
 ## Code changes by Jan Neurocny
-* Adding variable $useCustomProxy, to turn on using custom defined proxy server via GET params (miniProxy.php?ip=xxx.xxx.xxx.xxx&port=8080&url=http://example.net).
-* Adding variable $useCustomUseragent, to turn on using custom defined UserAgent.
+* Adding variable $useCustomProxy, to turn on using custom defined proxy server via GET params (miniProxy.php?ip=xxx.xxx.xxx.xxx&port=8080&url=http://example.net). ([commit 42ca2a2][6])
+* Adding variable $useCustomUseragent, to turn on using custom defined UserAgent. ([commit 42ca2a2][6])
 
 ## Contact and Feedback
 
@@ -45,3 +45,4 @@ If you'd like to contribute to miniProxy or file a bug or feature request, pleas
   [3]: http://pageforward.sf.net
   [4]: https://github.com/joshdick/miniProxy
   [5]: https://github.com/bagocina/miniProxy
+  [6]: https://github.com/bagocina/miniProxy/commit/42ca2a29e53fa2f2f97fef78700977ec057bcf82
