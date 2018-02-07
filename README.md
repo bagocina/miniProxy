@@ -35,6 +35,12 @@ miniProxy has several known limitations. Some of them may be fixed in future rel
 ## Code changes by Jan Neurocny
 * Adding variable $useCustomProxy, to turn on using custom defined proxy server via GET params (miniProxy.php?ip=xxx.xxx.xxx.xxx&port=8080&url=http://example.net). ([commit 42ca2a2][6])
 * Adding variable $useCustomUseragent, to turn on using custom defined UserAgent. ([commit 42ca2a2][6])
+* Adding parameter "protocol", to set CURLOPT_PROXYTYPE. 
+  * http - CURLPROXY_HTTP
+  * socks4 - CURLPROXY_SOCKS4
+  * socks5 - CURLPROXY_SOCKS5
+  * socks4a - CURLPROXY_SOCKS4A
+  * socks5_host - CURLPROXY_SOCKS5_HOSTNAME
 
 ## Contact and Feedback
 

@@ -110,7 +110,7 @@ $prefixHost = $_SERVER["HTTP_HOST"];
 $prefixHost = strpos($prefixHost, ":") ? implode(":", explode(":", $_SERVER["HTTP_HOST"], -1)) : $prefixHost;
 
 if ($useCustomProxy) {
-  define("PROXY_PREFIX", "http" . (isset($_SERVER["HTTPS"]) ? "s" : "") . "://" . $prefixHost . $prefixPort . $_SERVER["SCRIPT_NAME"] . "?ip=".$_GET['ip']."&port=".$_GET['port']."&url=");
+  define("PROXY_PREFIX", "http" . (isset($_SERVER["HTTPS"]) ? "s" : "") . "://" . $prefixHost . $prefixPort . $_SERVER["SCRIPT_NAME"] . "?ip=".$_GET['ip']."&port=".$_GET['port']."&protocol=".$_GET['protocol']."&url=");
 } else {
   define("PROXY_PREFIX", "http" . (isset($_SERVER["HTTPS"]) ? "s" : "") . "://" . $prefixHost . $prefixPort . $_SERVER["SCRIPT_NAME"] . "?");
 }
@@ -164,6 +164,17 @@ function makeRequest($url) {
   //Using custom proxy server
   if ($useCustomProxy) {
     curl_setopt($ch, CURLOPT_PROXY, $_GET['ip'].':'.$_GET['port']);
+    if (isset($_GET['protocol']) && $_GET['protocol'] == "socks4") {
+      curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS4);
+    } elseif (isset($_GET['protocol']) && $_GET['protocol'] == "socks5") {
+      curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
+    } elseif (isset($_GET['protocol']) && $_GET['protocol'] == "socks4a") {
+      curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS4A);
+    } elseif (isset($_GET['protocol']) && $_GET['protocol'] == "socks5_host") {
+      curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5_HOSTNAME);
+    } else {
+      curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);      
+    }
   }
   //Any `origin` header sent by the browser will refer to the proxy itself.
   //If an `origin` header is present in the request, rewrite it to point to the correct origin.
@@ -305,7 +316,7 @@ if (isset($_POST["miniProxyFormAction"])) {
     $url = $formAction . "?" . http_build_query($queryParams);
   } else {   
     if ($useCustomProxy) {
-      $url = mb_substr($_SERVER["REQUEST_URI"], mb_strlen($_SERVER["SCRIPT_NAME"]."?ip=".$_GET['ip']."&port=".$_GET['port']."&url=") + 0);
+      $url = mb_substr($_SERVER["REQUEST_URI"], mb_strlen($_SERVER["SCRIPT_NAME"]."?ip=".$_GET['ip']."&port=".$_GET['port']."&protocol=".$_GET['protocol']."&url=") + 0);
     } else {
       $url = substr($_SERVER["REQUEST_URI"], strlen($_SERVER["SCRIPT_NAME"]) + 1);
     }
