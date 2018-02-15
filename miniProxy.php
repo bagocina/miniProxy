@@ -123,10 +123,12 @@ function makeRequest($url) {
   global $useCustomUseragent;
 
   //Tell cURL to make the request using the brower's user-agent if there is one, or a fallback user-agent otherwise.
-  $user_agent = $_SERVER["HTTP_USER_AGENT"];
-  if (empty($user_agent)) {
-    $user_agent = "Mozilla/5.0 (compatible; miniProxy)";
+  $user_agent = "Mozilla/5.0 (compatible; miniProxy)";
+  
+  if (isset($_SERVER["HTTP_USER_AGENT"])) {
+    $user_agent = $_SERVER["HTTP_USER_AGENT"];
   }
+
   if (strlen($useCustomUseragent) > 0) {
     $user_agent = $useCustomUseragent;
   }
